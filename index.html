@@ -202,15 +202,6 @@
     <button class="ic" id="zoomBtn" aria-pressed="false" title="Zoom in (Z)" aria-label="Zoom in">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2M11 8v6M8 11h6"/></svg>
     </button>
-    <button class="ic" id="gridBtn" title="All slides (G)" aria-label="Show all slides">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/></svg>
-    </button>
-    <button class="ic" id="playBtn" aria-pressed="false" title="Auto-play (P)" aria-label="Auto-play">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path id="playIcon" d="M8 5.5v13l10.5-6.5z"/></svg>
-    </button>
-    <button class="ic" id="fsBtn" title="Full screen (F)" aria-label="Full screen">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-    </button>
   </div>
 </div>
 <button class="ic arrow chrome" id="prev" aria-label="Previous slide">
@@ -468,30 +459,24 @@ function toggleGrid(open = !overview.classList.contains('open')) {
   overview.setAttribute('aria-hidden', !open);
   thumbs.forEach((t, j) => t.classList.toggle('current', j === idx));
   if (open) { setZoom(false); thumbs[idx]?.focus({ preventScroll: true }); thumbs[idx]?.scrollIntoView({ block: 'center' }); }
-  else document.getElementById('gridBtn').focus({ preventScroll: true });
+  else document.activeElement?.blur();
 }
-document.getElementById('gridBtn').addEventListener('click', () => toggleGrid());
 document.getElementById('homeBtn').addEventListener('click', () => go(0));
 document.getElementById('closeGrid').addEventListener('click', () => toggleGrid(false));
 
-// ---------- autoplay ----------
+// ---------- autoplay (P key) ----------
 let playing = false, timer = null;
-const playBtn = document.getElementById('playBtn');
 function restartPlay() { clearTimeout(timer); timer = setTimeout(() => go(idx === N - 1 ? 0 : idx + 1), 7000); }
 function setPlay(on) {
   playing = on;
-  playBtn.setAttribute('aria-pressed', on);
-  document.getElementById('playIcon').setAttribute('d', on ? 'M7 5.5h3.5v13H7zM13.5 5.5H17v13h-3.5z' : 'M8 5.5v13l10.5-6.5z');
   if (on) restartPlay(); else clearTimeout(timer);
 }
-playBtn.addEventListener('click', () => setPlay(!playing));
 
-// ---------- fullscreen ----------
+// ---------- fullscreen (F key) ----------
 function toggleFs() {
   if (document.fullscreenElement) document.exitFullscreen();
   else document.documentElement.requestFullscreen?.().catch(() => {});
 }
-document.getElementById('fsBtn').addEventListener('click', toggleFs);
 
 document.getElementById('prev').addEventListener('click', prev);
 document.getElementById('next').addEventListener('click', next);
