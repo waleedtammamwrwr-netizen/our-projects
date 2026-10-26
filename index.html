@@ -74,6 +74,15 @@
   .jump.dark .pill-btn i { background: var(--gold-deep); color: #fff7dc; }
   .jump .pill-btn.on { background: #e0c468; border-color: #e0c468; color: var(--ink); }
   .jump .pill-btn.on i { background: var(--ink); color: #f6eccb; }
+  /* a section's options, e.g. Gallery: Design 01 · Design 02 · Landscape */
+  .jump .opts { display: flex; align-items: center; gap: .45cqw; margin-left: .6cqw; padding-left: 1.1cqw; border-left: .07cqw solid currentColor; }
+  .opt-btn { all: unset; box-sizing: border-box; cursor: pointer; height: 1.75cqw; padding: 0 .85cqw; display: inline-flex; align-items: center;
+    border-radius: 999px; border: .07cqw solid; white-space: nowrap; font-family: var(--serif); font-size: .66cqw; font-weight: 500;
+    letter-spacing: .08em; text-transform: uppercase; transition: background .2s, color .2s; }
+  .jump.light .opt-btn { border-color: #d6bf74; color: #6b5a2a; }
+  .jump.dark .opt-btn { border-color: #8f7a3f; color: #e8e0c4; }
+  .jump .opt-btn:hover, .jump .opt-btn:focus-visible { background: rgba(214,191,116,.25); outline: none; }
+  .jump .opt-btn.on { background: var(--ink); border-color: var(--ink); color: #efe3b0; }
 
   /* ---------- menu (first slide) ---------- */
   .menu { position: absolute; inset: 0; background: radial-gradient(70% 90% at 100% 0%, #0d2c22 0%, #071a14 70%); }
@@ -306,17 +315,18 @@
 // 200 + n is page n of the Umm Al Sheif PDF (200 = its explore page; 202 = location and 290 = floor areas, both built here);
 // 300 + n is page n of The Terraces · Crown Residence edition (300 = its explore page).
 const range = (a, b) => Array.from({ length: b - a + 1 }, (_, k) => a + k);
+// Every project follows Montage's order: explore page · location · residences · gallery.
 const PAGES = [0, 1,6,10,11,12,13,14,15,16,17,22,23,24,25,
-  200,203,202,205,206, ...range(207, 256), 290, ...range(257, 260),
-  300, ...range(302, 328), 330];
+  200, 202,205,206, 203,256,290,257,258,259,260, ...range(207, 255),
+  300, ...range(302, 306), 326,327,328, 307,308, ...range(318, 321), ...range(322, 325), ...range(309, 317), 330];
 const UMM_TITLES = {
   200: 'Umm Al Sheif Mansion', 203: 'Project Narrative', 202: 'Iconic Location', 205: 'Project Location',
-  206: 'Surroundings', 207: 'Renders · Option 1', 226: 'Façade · Materials', 227: 'Façade · Four Palettes',
-  228: 'Façade · Decision Comparison', 229: 'Façade · Technical Baseline', 230: 'Renders · Option 2', 239: 'Landscape',
+  206: 'Surroundings', 207: 'Gallery · Design 01', 226: 'Façade · Materials', 227: 'Façade · Four Palettes',
+  228: 'Façade · Decision Comparison', 229: 'Façade · Technical Baseline', 230: 'Gallery · Design 02', 239: 'Gallery · Landscape',
   256: 'Floor Plans', 290: 'The Space · Floor Areas', 257: 'Basement Floor', 258: 'Ground Floor', 259: 'First Floor', 260: 'Roof Floor',
 };
-range(208, 225).forEach((p, k) => UMM_TITLES[p] = `Option 1 · Render ${k + 1}`);
-range(231, 238).forEach((p, k) => UMM_TITLES[p] = `Option 2 · Render ${k + 1}`);
+range(208, 225).forEach((p, k) => UMM_TITLES[p] = `Design 01 · Render ${k + 1}`);
+range(231, 238).forEach((p, k) => UMM_TITLES[p] = `Design 02 · Render ${k + 1}`);
 range(240, 255).forEach((p, k) => UMM_TITLES[p] = `Landscape · ${k + 1}`);
 const TERRACES_TITLES = {
   300: 'The Terraces', 302: 'Welcome', 303: 'The Project', 304: 'Architecture', 305: 'Crafted from the Street Up',
@@ -336,10 +346,13 @@ const TITLES = {
 // [label, first slide id, project]; the Jump-to bar shows only the current project's sections
 const SECTIONS = [['Our Projects', 0, ''],
   ['Montage', 1, 'montage'], ['Al Jaddaf', 6, 'montage'], ['Residences', 10, 'montage'], ['Gallery', 22, 'montage'],
-  ['Mansion', 200, 'umm'], ['Location', 202, 'umm'], ['Option 1', 207, 'umm'], ['Option 2', 230, 'umm'],
-  ['Landscape', 239, 'umm'], ['The Space', 256, 'umm'],
-  ['Terraces', 300, 'terraces'], ['Location', 307, 'terraces'], ['Amenities', 309, 'terraces'],
-  ['Penthouse', 318, 'terraces']];
+  ['Mansion', 200, 'umm'], ['Umm Al Sheif', 202, 'umm'], ['Residences', 203, 'umm'], ['Gallery', 207, 'umm'],
+  ['Terraces', 300, 'terraces'], ['Marasi Drive', 307, 'terraces'], ['Residences', 318, 'terraces'], ['Gallery', 322, 'terraces']];
+// Options shown beside a section's pill while inside it: section start → [label, first slide id]
+const OPTIONS = {
+  207: [['Design 01', 207], ['Design 02', 230], ['Landscape', 239]],
+  322: [['Penthouse', 322], ['Amenities', 309]],
+};
 const LIGHT = new Set([10,11,12,13,14,15,16,17, 203,205,206, ...range(207, 260), 290]);
 const DARK = new Set([6,22,23,24,25, 202, ...range(302, 330)]);
 // Umm Al Sheif pages are A4 landscape, so they sit letterboxed over a blurred copy of themselves;
@@ -385,15 +398,15 @@ const HUBS = {
   ] },
   200: { art: 'umm-cover.webp', fill: true, alt: 'Umm Al Sheif Mansion — the private villa',
        eyebrow: 'Private Mansion · Umm Al Sheif, Dubai', title: 'Explore The Mansion', tiles: [
-    [202, 'Location', 'Destinations & access', [210, .15, .30, .55]],
-    [207, 'Renders', 'Two designs · façades · landscape', [209, .20, .30, .60]],
-    [256, 'The Space', 'Floor-by-floor areas · plans', [241, .22, .35, .50]],
+    [202, 'Umm Al Sheif', 'Location · destinations & access', [210, .15, .30, .55]],
+    [203, 'Residences', 'Four levels · floor areas & plans', [241, .22, .35, .50]],
+    [207, 'Gallery', 'Design 01 · Design 02 · Landscape', [209, .20, .30, .60]],
   ] },
   300: { art: 301, wide: true, alt: 'The Terraces Marasi Drive — Crown Residence',
        eyebrow: 'The Penthouse · Business Bay, Dubai', title: 'Explore The Terraces', tiles: [
-    [307, 'Location', 'Marasi Drive · drive times', [307, .03, .08, .42]],
-    [309, 'Amenities', 'Lobby · pools · spa · fitness', [312, .05, .10, .55]],
-    [318, 'Penthouse', 'Two levels · 13,077 sq.ft', [318, .52, .12, .45]],
+    [307, 'Marasi Drive', 'Location · drive times', [307, .03, .08, .42]],
+    [318, 'Residences', 'The Penthouse · 13,077 sq.ft', [318, .52, .12, .45]],
+    [322, 'Gallery', 'Penthouse · amenities', [312, .05, .10, .55]],
   ] },
 };
 // Location slides built in HTML: map, destinations and a Google Maps link
@@ -589,6 +602,21 @@ const slides = PAGES.map((page, i) => {
       b.innerHTML = `${sec[0]}<i>›</i>`;
       b.addEventListener('click', () => go(slideOf(sec[1])));
       nav.appendChild(b);
+    }
+    // inside a section with options (e.g. Gallery), list them after the pills
+    if (OPTIONS[cur[1]]) {
+      const opts = document.createElement('span');
+      opts.className = 'opts';
+      const list = OPTIONS[cur[1]];
+      const on = list.reduce((o, opt) => i >= slideOf(opt[1]) ? opt : o, list[0]);
+      for (const opt of list) {
+        const b = document.createElement('button');
+        b.className = 'opt-btn' + (opt === on ? ' on' : '');
+        b.textContent = opt[0];
+        b.addEventListener('click', () => go(slideOf(opt[1])));
+        opts.appendChild(b);
+      }
+      nav.appendChild(opts);
     }
     nav.insertAdjacentHTML('beforeend', `<span class="num">${i + 1}</span>`);
     inner.appendChild(nav);
